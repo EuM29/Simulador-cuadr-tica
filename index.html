@@ -362,6 +362,46 @@ function dibujar(){
   ctx.lineTo(950,430);
   ctx.stroke();
 
+  // =========================
+// JUGADOR
+// =========================
+
+ctx.fillStyle = rojo;
+
+// cabeza
+ctx.beginPath();
+ctx.arc(pxX(0)-25,370,14,0,Math.PI*2);
+ctx.fill();
+
+// cuerpo
+ctx.fillRect(pxX(0)-34,385,18,45);
+
+// brazos
+ctx.strokeStyle = rojo;
+ctx.lineWidth = 5;
+
+ctx.beginPath();
+ctx.moveTo(pxX(0)-25,395);
+ctx.lineTo(pxX(0)-45,410);
+
+ctx.moveTo(pxX(0)-25,395);
+ctx.lineTo(pxX(0)-5,405);
+ctx.stroke();
+
+// piernas
+ctx.beginPath();
+ctx.moveTo(pxX(0)-25,425);
+ctx.lineTo(pxX(0)-45,450);
+
+ctx.moveTo(pxX(0)-25,425);
+ctx.lineTo(pxX(0)-5,450);
+ctx.stroke();
+
+// etiqueta
+ctx.fillStyle = azul;
+ctx.font = "16px Segoe UI";
+ctx.fillText("jugador", pxX(0)-55,470);
+
   const barreraX = 4.5;
   const alturaBarrera = 1.7;
 
