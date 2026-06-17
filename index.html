@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Simulador: tiro libre y parábola</title>
+<style>
+:root{
+  --rojo:#cd2027;
+  --rojoOscuro:#9b1923;
+  --azul:#233258;
+  --gris:#f7f8fa;
+  --grisCaja:#eef0f4;
+  --texto:#232323;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background:var(--gris);
+  color:var(--texto);
+}
+
+header{
+  background:linear-gradient(135deg,var(--rojo),var(--rojoOscuro));
+  color:white;
+  padding:22px 34px;
+  border-bottom:8px solid var(--azul);
+}
+
+header h1{
+  margin:0;
+  font-size:2rem;
+}
+
+header p{
+  margin:6px 0 0;
+  font-size:1rem;
+}
+
+.contenedor{
+  display:grid;
+  grid-template-columns: 320px 1fr;
+  gap:22px;
+  padding:24px;
+}
+
+.panel{
+  background:white;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.panel h2{
+  color:var(--rojo);
+  margin-top:0;
+}
+
+.control{
+  margin:20px 0;
+}
+
+label{
+  font-weight:700;
+  display:block;
+  margin-bottom:8px;
+}
+
+input[type="range"]{
+  width:100%;
+  accent-color:var(--rojo);
+}
+
+.valor{
+  background:var(--grisCaja);
+  padding:7px 10px;
+  border-radius:8px;
+  color:var(--azul);
+  font-weight:700;
+  display:inline-block;
+  margin-top:6px;
+}
+
+.ecuacion{
+  background:var(--azul);
+  color:white;
+  padding:14px;
+  border-radius:12px;
+  text-align:center;
+  font-size:1.35rem;
+  margin-top:18px;
+}
+
+.resultado{
+  margin-top:18px;
+  padding:14px;
+  border-radius:12px;
+  background:#fff0f1;
+  border-left:6px solid var(--rojo);
+  font-weight:700;
+}
+
+.escenario{
+  background:white;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+canvas{
+  width:100%;
+  height:520px;
+  background:linear-gradient(#ffffff,#f0f2f6);
+  border-radius:16px;
+  border:1px solid #dfe3ea;
+}
+
+.nota{
+  font-size:.9rem;
+  color:#555;
+  margin-top:12px;
+}
+
+@media(max-width:850px){
+  .contenedor{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Simulador: tiro libre de fútbol</h1>
+  <p>Modelo cuadrático de la trayectoria del balón</p>
+</header>
+
+<div class="contenedor">
+
+  <section class="panel">
+    <h2>Parámetros</h2>
+
+    <div class="control">
+      <label for="a">Coeficiente cuadrático \(a\)</label>
+      <input id="a" type="range" min="-0.18" max="-0.02" step="0.01" value="-0.08">
+      <span class="valor" id="valorA"></span>
+    </div>
+
+    <div class="control">
+      <label for="b">Pendiente inicial \(b\)</label>
+      <input id="b" type="range" min="0.4" max="2.4" step="0.1" value="1.2">
+      <span class="valor" id="valorB"></span>
+    </div>
+
+    <div class="ecuacion" id="ecuacion"></div>
+
+    <div class="resultado" id="resultado"></div>
+
+    <p class="nota">
+      La trayectoria se modela como:
+      <br><strong>h(x)=ax²+bx</strong>
+      <br>donde <strong>x</strong> es la distancia horizontal y <strong>h(x)</strong> la altura del balón.
+    </p>
+  </section>
+
+  <section class="escenario">
+    <canvas id="canvas" width="1000" height="520"></canvas>
+  </section>
+
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const inputA = document.getElementById("a");
+const inputB = document.getElementById("b");
+
+const valorA = document.getElementById("valorA");
+const valorB = document.getElementById("valorB");
+const ecuacion = document.getElementById("ecuacion");
+const resultado = document.getElementById("resultado");
+
+const rojo = "#cd2027";
+const azul = "#233258";
+
+function pxX(x){
+  return 80 + x * 75;
+}
+
+function pxY(y){
+  return 430 - y * 75;
+}
+
+function dibujar(){
+  const a = parseFloat(inputA.value);
+  const b = parseFloat(inputB.value);
+
+  valorA.textContent = `a = ${a.toFixed(2)}`;
+  valorB.textContent = `b = ${b.toFixed(1)}`;
+
+  ecuacion.innerHTML = `h(x) = ${a.toFixed(2)}x² + ${b.toFixed(1)}x`;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Fondo
+  ctx.fillStyle = "#f7f8fa";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Decoración roja
+  ctx.fillStyle = "rgba(205,32,39,0.12)";
+  ctx.beginPath();
+  ctx.arc(0,0,180,0,Math.PI*2);
+  ctx.fill();
+
+  // Suelo
+  ctx.strokeStyle = azul;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(60,430);
+  ctx.lineTo(950,430);
+  ctx.stroke();
+
+  // Cancha
+  ctx.fillStyle = "#e8ecef";
+  for(let i=90;i<930;i+=70){
+    ctx.fillRect(i,430,45,8);
+  }
+
+  // Barrera
+  const barreraX = 4.5;
+  const alturaBarrera = 1.7;
+
+  for(let i=0;i<4;i++){
+    const x = pxX(barreraX) + i*22;
+    ctx.fillStyle = azul;
+    ctx.fillRect(x, pxY(alturaBarrera), 14, alturaBarrera*75);
+
+    ctx.beginPath();
+    ctx.arc(x+7, pxY(alturaBarrera)-10, 9, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = azul;
+  ctx.font = "16px Segoe UI";
+  ctx.fillText("barrera", pxX(barreraX)-5, 465);
+
+  // Portería
+  const porteriaX = 7.2;
+  const porteriaH = 2.2;
+
+  ctx.strokeStyle = azul;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(pxX(porteriaX),430);
+  ctx.lineTo(pxX(porteriaX),pxY(porteriaH));
+  ctx.lineTo(pxX(porteriaX)+110,pxY(porteriaH));
+  ctx.lineTo(pxX(porteriaX)+110,430);
+  ctx.stroke();
+
+  ctx.font = "16px Segoe UI";
+  ctx.fillText("portería", pxX(porteriaX)+20, 465);
+
+  // Trayectoria
+  ctx.strokeStyle = rojo;
+  ctx.lineWidth = 5;
+  ctx.setLineDash([14,10]);
+  ctx.beginPath();
+
+  let primero = true;
+  let ultimoPunto = null;
+  let maxY = -Infinity;
+  let maxX = 0;
+
+  for(let x=0; x<=8.2; x+=0.04){
+    const y = a*x*x + b*x;
+    if(y >= 0){
+      const X = pxX(x);
+      const Y = pxY(y);
+
+      if(primero){
+        ctx.moveTo(X,Y);
+        primero = false;
+      }else{
+        ctx.lineTo(X,Y);
+      }
+
+      ultimoPunto = {x,y,X,Y};
+
+      if(y > maxY){
+        maxY = y;
+        maxX = x;
+      }
+    }
+  }
+
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Vértice
+  ctx.fillStyle = rojo;
+  ctx.beginPath();
+  ctx.arc(pxX(maxX), pxY(maxY), 8, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.font = "bold 16px Segoe UI";
+  ctx.fillText("altura máxima", pxX(maxX)+12, pxY(maxY)-10);
+
+  // Balón
+  const ballX = Math.min(5.8, Math.max(1.2, maxX + 1.2));
+  const ballY = a*ballX*ballX + b*ballX;
+
+  ctx.fillStyle = "#d66b1f";
+  ctx.beginPath();
+  ctx.arc(pxX(ballX), pxY(ballY), 18, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#4b2209";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(pxX(ballX)-18, pxY(ballY));
+  ctx.lineTo(pxX(ballX)+18, pxY(ballY));
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(pxX(ballX), pxY(ballY)-18);
+  ctx.lineTo(pxX(ballX), pxY(ballY)+18);
+  ctx.stroke();
+
+  // Jugador
+  ctx.fillStyle = rojo;
+  ctx.beginPath();
+  ctx.arc(pxX(0)-25, 370, 14, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillRect(pxX(0)-34, 385, 18, 45);
+
+  ctx.strokeStyle = rojo;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(pxX(0)-25, 425);
+  ctx.lineTo(pxX(0)-45, 450);
+  ctx.moveTo(pxX(0)-25, 425);
+  ctx.lineTo(pxX(0)-5, 450);
+  ctx.stroke();
+
+  ctx.fillStyle = azul;
+  ctx.font = "16px Segoe UI";
+  ctx.fillText("jugador", pxX(0)-55, 470);
+
+  // Evaluación de la barrera
+  const alturaEnBarrera = a*barreraX*barreraX + b*barreraX;
+
+  if(alturaEnBarrera > alturaBarrera){
+    resultado.innerHTML = `✅ El balón supera la barrera. Altura en la barrera: ${alturaEnBarrera.toFixed(2)} m.`;
+  }else{
+    resultado.innerHTML = `❌ El balón no supera la barrera. Altura en la barrera: ${alturaEnBarrera.toFixed(2)} m.`;
+  }
+
+  // Texto del vértice
+  ctx.fillStyle = azul;
+  ctx.font = "bold 18px Segoe UI";
+  ctx.fillText(`Máximo ≈ ${maxY.toFixed(2)} m`, 720, 70);
+}
+
+inputA.addEventListener("input", dibujar);
+inputB.addEventListener("input", dibujar);
+
+dibujar();
+</script>
+
+</body>
+</html>
