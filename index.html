@@ -176,6 +176,63 @@ canvas{
   <canvas id="canvas" width="1000" height="520"></canvas>
 </section>
 
+  <section class="escenario">
+    <h2 style="color:#cd2027;margin-top:0;">
+        📈 Explorador de Funciones Cuadráticas
+    </h2>
+
+    <div style="display:grid;
+                grid-template-columns:320px 1fr;
+                gap:20px;">
+
+        <div>
+
+            <div class="control">
+                <label>a (coeficiente cuadrático)</label>
+                <input id="a2" type="range"
+                       min="-2"
+                       max="2"
+                       step="0.1"
+                       value="1">
+                <span class="valor" id="valorA2"></span>
+            </div>
+
+            <div class="control">
+                <label>b (coeficiente lineal)</label>
+                <input id="b2" type="range"
+                       min="-10"
+                       max="10"
+                       step="0.5"
+                       value="0">
+                <span class="valor" id="valorB2"></span>
+            </div>
+
+            <div class="control">
+                <label>c (término independiente)</label>
+                <input id="c2" type="range"
+                       min="-10"
+                       max="10"
+                       step="0.5"
+                       value="0">
+                <span class="valor" id="valorC2"></span>
+            </div>
+
+            <div class="ecuacion" id="ecuacion2"></div>
+
+            <div class="resultado" id="infoParabola"></div>
+
+        </div>
+
+        <div>
+            <canvas id="canvasParabola"
+                    width="800"
+                    height="450">
+            </canvas>
+        </div>
+
+    </div>
+</section>
+
 </div>
 
 <script>
@@ -414,6 +471,142 @@ inputA.addEventListener("input",dibujar);
 inputB.addEventListener("input",dibujar);
 
 dibujar();
+
+  const canvas2 = document.getElementById("canvasParabola");
+const ctx2 = canvas2.getContext("2d");
+
+const a2 = document.getElementById("a2");
+const b2 = document.getElementById("b2");
+const c2 = document.getElementById("c2");
+
+const valorA2 = document.getElementById("valorA2");
+const valorB2 = document.getElementById("valorB2");
+const valorC2 = document.getElementById("valorC2");
+
+const ecuacion2 = document.getElementById("ecuacion2");
+const infoParabola = document.getElementById("infoParabola");
+
+function dibujarParabola(){
+
+    const A = parseFloat(a2.value);
+    const B = parseFloat(b2.value);
+    const C = parseFloat(c2.value);
+
+    valorA2.textContent = `a = ${A}`;
+    valorB2.textContent = `b = ${B}`;
+    valorC2.textContent = `c = ${C}`;
+
+    ecuacion2.innerHTML =
+    `\\(y=${A}x^2+${B}x+${C}\\)`;
+
+    ctx2.clearRect(0,0,800,450);
+
+    ctx2.fillStyle="#f7f8fa";
+    ctx2.fillRect(0,0,800,450);
+
+    const origenX=400;
+    const origenY=225;
+    const escala=35;
+
+    ctx2.strokeStyle="#233258";
+    ctx2.lineWidth=2;
+
+    ctx2.beginPath();
+    ctx2.moveTo(0,origenY);
+    ctx2.lineTo(800,origenY);
+    ctx2.stroke();
+
+    ctx2.beginPath();
+    ctx2.moveTo(origenX,0);
+    ctx2.lineTo(origenX,450);
+    ctx2.stroke();
+
+    ctx2.strokeStyle="#cd2027";
+    ctx2.lineWidth=4;
+
+    ctx2.beginPath();
+
+    let primero=true;
+
+    for(let x=-10;x<=10;x+=0.05){
+
+        let y=A*x*x+B*x+C;
+
+        let px=origenX+x*escala;
+        let py=origenY-y*escala;
+
+        if(primero){
+            ctx2.moveTo(px,py);
+            primero=false;
+        }
+        else{
+            ctx2.lineTo(px,py);
+        }
+    }
+
+    ctx2.stroke();
+
+    const xv=-B/(2*A);
+    const yv=A*xv*xv+B*xv+C;
+
+    ctx2.fillStyle="#1f9d55";
+
+    ctx2.beginPath();
+    ctx2.arc(
+        origenX+xv*escala,
+        origenY-yv*escala,
+        7,
+        0,
+        Math.PI*2
+    );
+    ctx2.fill();
+
+    const delta=B*B-4*A*C;
+
+    let texto="";
+
+    texto += `<strong>Discriminante:</strong> ${delta.toFixed(2)}<br>`;
+
+    texto += `<strong>Vértice:</strong> (${xv.toFixed(2)}, ${yv.toFixed(2)})<br>`;
+
+    if(A>0){
+        texto += `<strong>Concavidad:</strong> ↑ Abierta hacia arriba<br>`;
+    }else{
+        texto += `<strong>Concavidad:</strong> ↓ Abierta hacia abajo<br>`;
+    }
+
+    if(delta>0){
+
+        const x1=(-B+Math.sqrt(delta))/(2*A);
+        const x2=(-B-Math.sqrt(delta))/(2*A);
+
+        texto += `<strong>Raíces:</strong><br>`;
+        texto += `x₁=${x1.toFixed(2)}<br>`;
+        texto += `x₂=${x2.toFixed(2)}`;
+    }
+    else if(delta===0){
+
+        const x=-B/(2*A);
+
+        texto += `<strong>Raíz doble:</strong><br>`;
+        texto += `x=${x.toFixed(2)}`;
+    }
+    else{
+
+        texto += `<strong>Raíces:</strong><br>`;
+        texto += `No existen raíces reales`;
+    }
+
+    infoParabola.innerHTML=texto;
+
+    MathJax.typesetPromise();
+}
+
+a2.addEventListener("input",dibujarParabola);
+b2.addEventListener("input",dibujarParabola);
+c2.addEventListener("input",dibujarParabola);
+
+dibujarParabola();
 </script>
 
 </body>
