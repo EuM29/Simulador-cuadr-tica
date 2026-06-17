@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Simulador: tiro libre y parábola</title>
+<title>Simulador: tiro libre y funciones cuadráticas</title>
 
 <script>
 window.MathJax = {
@@ -65,7 +65,18 @@ header p{
   box-shadow:0 8px 24px rgba(0,0,0,.08);
 }
 
-.panel h2{
+.fullwidth{
+  grid-column:1 / -1;
+}
+
+.explorador-grid{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:20px;
+  align-items:start;
+}
+
+h2{
   color:var(--rojo);
   margin-top:0;
 }
@@ -122,14 +133,43 @@ input[type="range"]{
 
 canvas{
   width:100%;
-  height:520px;
   background:linear-gradient(#ffffff,#f0f2f6);
   border-radius:16px;
   border:1px solid #dfe3ea;
 }
 
+#canvas{
+  height:520px;
+}
+
+#canvasParabola{
+  height:450px;
+}
+
+.botones{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:16px;
+}
+
+button{
+  border:none;
+  background:var(--rojo);
+  color:white;
+  padding:9px;
+  border-radius:9px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+button:hover{
+  background:var(--rojoOscuro);
+}
+
 @media(max-width:850px){
-  .contenedor{
+  .contenedor,
+  .explorador-grid{
     grid-template-columns:1fr;
   }
 }
@@ -139,14 +179,14 @@ canvas{
 <body>
 
 <header>
-  <h1>Simulador: tiro libre de fútbol</h1>
-  <p>Modelo cuadrático de la trayectoria del balón</p>
+  <h1>Simulador: tiro libre y funciones cuadráticas</h1>
+  <p>Modelo cuadrático aplicado a una trayectoria parabólica</p>
 </header>
 
 <div class="contenedor">
 
 <section class="panel">
-  <h2>Parámetros</h2>
+  <h2>⚽ Parámetros</h2>
 
   <div class="control">
     <label for="a">Coeficiente cuadrático \(a\)</label>
@@ -161,14 +201,12 @@ canvas{
   </div>
 
   <div class="ecuacion" id="ecuacion"></div>
-
   <div class="resultado" id="resultado"></div>
 
   <p class="nota">
     La trayectoria se modela como:
     <br><strong>\(h(x)=ax^2+bx\)</strong>
-    <br>donde <strong>\(x\)</strong> es la distancia horizontal y
-    <strong>\(h(x)\)</strong> la altura del balón.
+    <br>donde \(x\) es la distancia horizontal y \(h(x)\) la altura del balón.
   </p>
 </section>
 
@@ -176,66 +214,59 @@ canvas{
   <canvas id="canvas" width="1000" height="520"></canvas>
 </section>
 
-  <section class="escenario">
-    <h2 style="color:#cd2027;margin-top:0;">
-        📈 Explorador de Funciones Cuadráticas
-    </h2>
+<section class="escenario fullwidth">
+  <h2>📈 Explorador de Funciones Cuadráticas</h2>
 
-    <div style="display:grid;
-                grid-template-columns:320px 1fr;
-                gap:20px;">
+  <div class="explorador-grid">
 
-        <div>
+    <div>
+      <div class="control">
+        <label for="a2">\(a\) coeficiente cuadrático</label>
+        <input id="a2" type="range" min="-2" max="2" step="0.1" value="1">
+        <span class="valor" id="valorA2"></span>
+      </div>
 
-            <div class="control">
-                <label>a (coeficiente cuadrático)</label>
-                <input id="a2" type="range"
-                       min="-2"
-                       max="2"
-                       step="0.1"
-                       value="1">
-                <span class="valor" id="valorA2"></span>
-            </div>
+      <div class="control">
+        <label for="b2">\(b\) coeficiente lineal</label>
+        <input id="b2" type="range" min="-10" max="10" step="0.5" value="0">
+        <span class="valor" id="valorB2"></span>
+      </div>
 
-            <div class="control">
-                <label>b (coeficiente lineal)</label>
-                <input id="b2" type="range"
-                       min="-10"
-                       max="10"
-                       step="0.5"
-                       value="0">
-                <span class="valor" id="valorB2"></span>
-            </div>
+      <div class="control">
+        <label for="c2">\(c\) término independiente</label>
+        <input id="c2" type="range" min="-10" max="10" step="0.5" value="0">
+        <span class="valor" id="valorC2"></span>
+      </div>
 
-            <div class="control">
-                <label>c (término independiente)</label>
-                <input id="c2" type="range"
-                       min="-10"
-                       max="10"
-                       step="0.5"
-                       value="0">
-                <span class="valor" id="valorC2"></span>
-            </div>
+      <div class="ecuacion" id="ecuacion2"></div>
+      <div class="resultado" id="infoParabola"></div>
 
-            <div class="ecuacion" id="ecuacion2"></div>
-
-            <div class="resultado" id="infoParabola"></div>
-
-        </div>
-
-        <div>
-            <canvas id="canvasParabola"
-                    width="800"
-                    height="450">
-            </canvas>
-        </div>
-
+      <div class="botones">
+        <button onclick="preset(1,0,0)">Estándar</button>
+        <button onclick="preset(1,2,1)">Raíz doble</button>
+        <button onclick="preset(1,0,4)">Sin raíces</button>
+        <button onclick="preset(-1,4,0)">Máximo</button>
+      </div>
     </div>
+
+    <div>
+      <canvas id="canvasParabola" width="900" height="450"></canvas>
+    </div>
+
+  </div>
 </section>
 
 </div>
 
 <script>
+const rojo = "#cd2027";
+const azul = "#233258";
+const verde = "#1f9d55";
+
+// =========================
+// SIMULADOR TIRO LIBRE
+// =========================
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -246,10 +277,6 @@ const valorA = document.getElementById("valorA");
 const valorB = document.getElementById("valorB");
 const ecuacion = document.getElementById("ecuacion");
 const resultado = document.getElementById("resultado");
-
-const rojo = "#cd2027";
-const azul = "#233258";
-const verde = "#1f9d55";
 
 function pxX(x){
   return 80 + x * 75;
@@ -311,9 +338,7 @@ function dibujar(){
 
   valorA.textContent = `a = ${a.toFixed(2)}`;
   valorB.textContent = `b = ${b.toFixed(1)}`;
-
   ecuacion.innerHTML = `\\(h(x)=${a.toFixed(2)}x^2+${b.toFixed(1)}x\\)`;
-  MathJax.typesetPromise();
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -330,7 +355,6 @@ function dibujar(){
   ctx.arc(1000,520,220,0,Math.PI*2);
   ctx.fill();
 
-  // suelo
   ctx.strokeStyle = azul;
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -338,43 +362,13 @@ function dibujar(){
   ctx.lineTo(950,430);
   ctx.stroke();
 
-  // cancha
-  ctx.fillStyle = "#e8ecef";
-  for(let i=90;i<930;i+=70){
-    ctx.fillRect(i,430,45,8);
-  }
-
-  // jugador
-  ctx.fillStyle = rojo;
-  ctx.beginPath();
-  ctx.arc(pxX(0)-25,370,14,0,Math.PI*2);
-  ctx.fill();
-
-  ctx.fillRect(pxX(0)-34,385,18,45);
-
-  ctx.strokeStyle = rojo;
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(pxX(0)-25,425);
-  ctx.lineTo(pxX(0)-45,450);
-  ctx.moveTo(pxX(0)-25,425);
-  ctx.lineTo(pxX(0)-5,450);
-  ctx.stroke();
-
-  ctx.fillStyle = azul;
-  ctx.font = "16px Segoe UI";
-  ctx.fillText("jugador", pxX(0)-55,470);
-
-  // barrera
   const barreraX = 4.5;
   const alturaBarrera = 1.7;
 
   for(let i=0;i<4;i++){
     const x = pxX(barreraX)+i*22;
-
     ctx.fillStyle = azul;
     ctx.fillRect(x,pxY(alturaBarrera),14,alturaBarrera*75);
-
     ctx.beginPath();
     ctx.arc(x+7,pxY(alturaBarrera)-10,9,0,Math.PI*2);
     ctx.fill();
@@ -384,7 +378,6 @@ function dibujar(){
   ctx.font = "16px Segoe UI";
   ctx.fillText("barrera",pxX(barreraX)-5,465);
 
-  // portería
   const porteriaX = 7.2;
   const porteriaH = 2.2;
 
@@ -397,11 +390,8 @@ function dibujar(){
   ctx.lineTo(pxX(porteriaX)+110,430);
   ctx.stroke();
 
-  ctx.fillStyle = azul;
-  ctx.font = "16px Segoe UI";
   ctx.fillText("portería",pxX(porteriaX)+20,465);
 
-  // trayectoria
   ctx.strokeStyle = rojo;
   ctx.lineWidth = 5;
   ctx.setLineDash([14,10]);
@@ -413,18 +403,15 @@ function dibujar(){
 
   for(let x=0; x<=8.2; x+=0.04){
     const y = a*x*x + b*x;
-
     if(y >= 0){
       const X = pxX(x);
       const Y = pxY(y);
-
       if(primero){
         ctx.moveTo(X,Y);
         primero = false;
       }else{
         ctx.lineTo(X,Y);
       }
-
       if(y > maxY){
         maxY = y;
         maxX = x;
@@ -435,7 +422,6 @@ function dibujar(){
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // vértice
   ctx.fillStyle = rojo;
   ctx.beginPath();
   ctx.arc(pxX(maxX),pxY(maxY),8,0,Math.PI*2);
@@ -445,24 +431,17 @@ function dibujar(){
   ctx.font = "bold 16px Segoe UI";
   ctx.fillText("altura máxima",pxX(maxX)+12,pxY(maxY)-10);
 
-  // balón
   const ballX = Math.min(5.8,Math.max(1.2,maxX+1.2));
   const ballY = a*ballX*ballX + b*ballX;
-
   dibujarBalon(ballX,ballY,18);
 
-  // resultado
   const alturaEnBarrera = a*barreraX*barreraX + b*barreraX;
 
   if(alturaEnBarrera > alturaBarrera){
-    resultado.innerHTML = `El balón supera la barrera. Altura en la barrera: \\(${alturaEnBarrera.toFixed(2)}\\,m\\).`;
+    resultado.innerHTML = `✅ El balón supera la barrera. Altura en la barrera: \\(${alturaEnBarrera.toFixed(2)}\\,m\\).`;
   }else{
-    resultado.innerHTML = `El balón no supera la barrera. Altura en la barrera: \\(${alturaEnBarrera.toFixed(2)}\\,m\\).`;
+    resultado.innerHTML = `❌ El balón no supera la barrera. Altura en la barrera: \\(${alturaEnBarrera.toFixed(2)}\\,m\\).`;
   }
-
-  ctx.fillStyle = azul;
-  ctx.font = "bold 18px Segoe UI";
-  ctx.fillText(`Máximo ≈ ${maxY.toFixed(2)} m`,720,70);
 
   MathJax.typesetPromise();
 }
@@ -470,9 +449,11 @@ function dibujar(){
 inputA.addEventListener("input",dibujar);
 inputB.addEventListener("input",dibujar);
 
-dibujar();
+// =========================
+// EXPLORADOR GENERAL
+// =========================
 
-  const canvas2 = document.getElementById("canvasParabola");
+const canvas2 = document.getElementById("canvasParabola");
 const ctx2 = canvas2.getContext("2d");
 
 const a2 = document.getElementById("a2");
@@ -487,7 +468,6 @@ const ecuacion2 = document.getElementById("ecuacion2");
 const infoParabola = document.getElementById("infoParabola");
 
 function dibujarParabola(){
-
   const A = parseFloat(a2.value);
   const B = parseFloat(b2.value);
   const C = parseFloat(c2.value);
@@ -502,15 +482,13 @@ function dibujarParabola(){
   const H = canvas2.height;
 
   ctx2.clearRect(0,0,W,H);
-
   ctx2.fillStyle = "#f7f8fa";
   ctx2.fillRect(0,0,W,H);
 
   const origenX = W/2;
   const origenY = H/2;
-  const escala = 28;
+  const escala = 35;
 
-  // cuadrícula
   ctx2.strokeStyle = "#e2e5ea";
   ctx2.lineWidth = 1;
 
@@ -528,8 +506,7 @@ function dibujarParabola(){
     ctx2.stroke();
   }
 
-  // ejes
-  ctx2.strokeStyle = "#233258";
+  ctx2.strokeStyle = azul;
   ctx2.lineWidth = 2;
 
   ctx2.beginPath();
@@ -542,8 +519,7 @@ function dibujarParabola(){
   ctx2.lineTo(origenX,H);
   ctx2.stroke();
 
-  // parábola
-  ctx2.strokeStyle = "#cd2027";
+  ctx2.strokeStyle = rojo;
   ctx2.lineWidth = 4;
   ctx2.beginPath();
 
@@ -564,60 +540,59 @@ function dibujarParabola(){
 
   ctx2.stroke();
 
-  // vértice
-  const xv = -B/(2*A);
-  const yv = A*xv*xv + B*xv + C;
+  if(A !== 0){
+    const xv = -B/(2*A);
+    const yv = A*xv*xv + B*xv + C;
+    const vx = origenX + xv*escala;
+    const vy = origenY - yv*escala;
 
-  const vx = origenX + xv*escala;
-  const vy = origenY - yv*escala;
+    if(vx >= 0 && vx <= W && vy >= 0 && vy <= H){
+      ctx2.fillStyle = verde;
+      ctx2.beginPath();
+      ctx2.arc(vx,vy,7,0,Math.PI*2);
+      ctx2.fill();
 
-  if(vx >= 0 && vx <= W && vy >= 0 && vy <= H){
-    ctx2.fillStyle = "#1f9d55";
-    ctx2.beginPath();
-    ctx2.arc(vx,vy,7,0,Math.PI*2);
-    ctx2.fill();
+      ctx2.fillStyle = azul;
+      ctx2.font = "bold 14px Segoe UI";
+      ctx2.fillText("vértice",vx+10,vy-10);
+    }
 
-    ctx2.fillStyle = "#233258";
-    ctx2.font = "bold 14px Segoe UI";
-    ctx2.fillText("vértice", vx+10, vy-10);
+    const delta = B*B - 4*A*C;
+
+    let texto = "";
+    texto += `<strong>Discriminante:</strong> ${delta.toFixed(2)}<br>`;
+    texto += `<strong>Vértice:</strong> (${xv.toFixed(2)}, ${yv.toFixed(2)})<br>`;
+    texto += `<strong>Concavidad:</strong> ${A>0 ? "↑ Abierta hacia arriba" : "↓ Abierta hacia abajo"}<br>`;
+
+    if(delta > 0){
+      const x1 = (-B + Math.sqrt(delta))/(2*A);
+      const x2 = (-B - Math.sqrt(delta))/(2*A);
+      texto += `<strong>Raíces:</strong><br>x₁=${x1.toFixed(2)}<br>x₂=${x2.toFixed(2)}`;
+    }else if(delta === 0){
+      const x = -B/(2*A);
+      texto += `<strong>Raíz doble:</strong><br>x=${x.toFixed(2)}`;
+    }else{
+      texto += `<strong>Raíces:</strong><br>No existen raíces reales`;
+    }
+
+    infoParabola.innerHTML = texto;
   }
-
-  const delta = B*B - 4*A*C;
-
-  let texto = "";
-  texto += `<strong>Discriminante:</strong> ${delta.toFixed(2)}<br>`;
-  texto += `<strong>Vértice:</strong> (${xv.toFixed(2)}, ${yv.toFixed(2)})<br>`;
-
-  if(A > 0){
-    texto += `<strong>Concavidad:</strong> ↑ Abierta hacia arriba<br>`;
-  }else{
-    texto += `<strong>Concavidad:</strong> ↓ Abierta hacia abajo<br>`;
-  }
-
-  if(delta > 0){
-    const x1 = (-B + Math.sqrt(delta))/(2*A);
-    const x2 = (-B - Math.sqrt(delta))/(2*A);
-    texto += `<strong>Raíces:</strong><br>`;
-    texto += `x₁ = ${x1.toFixed(2)}<br>`;
-    texto += `x₂ = ${x2.toFixed(2)}`;
-  }else if(delta === 0){
-    const x = -B/(2*A);
-    texto += `<strong>Raíz doble:</strong><br>`;
-    texto += `x = ${x.toFixed(2)}`;
-  }else{
-    texto += `<strong>Raíces:</strong><br>`;
-    texto += `No existen raíces reales`;
-  }
-
-  infoParabola.innerHTML = texto;
 
   MathJax.typesetPromise();
+}
+
+function preset(A,B,C){
+  a2.value = A;
+  b2.value = B;
+  c2.value = C;
+  dibujarParabola();
 }
 
 a2.addEventListener("input",dibujarParabola);
 b2.addEventListener("input",dibujarParabola);
 c2.addEventListener("input",dibujarParabola);
 
+dibujar();
 dibujarParabola();
 </script>
 
