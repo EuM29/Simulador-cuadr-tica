@@ -488,118 +488,130 @@ const infoParabola = document.getElementById("infoParabola");
 
 function dibujarParabola(){
 
-    const A = parseFloat(a2.value);
-    const B = parseFloat(b2.value);
-    const C = parseFloat(c2.value);
+  const A = parseFloat(a2.value);
+  const B = parseFloat(b2.value);
+  const C = parseFloat(c2.value);
 
-    valorA2.textContent = `a = ${A}`;
-    valorB2.textContent = `b = ${B}`;
-    valorC2.textContent = `c = ${C}`;
+  valorA2.textContent = `a = ${A}`;
+  valorB2.textContent = `b = ${B}`;
+  valorC2.textContent = `c = ${C}`;
 
-    ecuacion2.innerHTML =
-    `\\(y=${A}x^2+${B}x+${C}\\)`;
+  ecuacion2.innerHTML = `\\(y=${A}x^2+${B}x+${C}\\)`;
 
-    ctx2.clearRect(0,0,800,450);
+  const W = canvas2.width;
+  const H = canvas2.height;
 
-    ctx2.fillStyle="#f7f8fa";
-    ctx2.fillRect(0,0,800,450);
+  ctx2.clearRect(0,0,W,H);
 
-    const origenX=400;
-    const origenY=225;
-    const escala=35;
+  ctx2.fillStyle = "#f7f8fa";
+  ctx2.fillRect(0,0,W,H);
 
-    ctx2.strokeStyle="#233258";
-    ctx2.lineWidth=2;
+  const origenX = W/2;
+  const origenY = H/2;
+  const escala = 28;
 
+  // cuadrícula
+  ctx2.strokeStyle = "#e2e5ea";
+  ctx2.lineWidth = 1;
+
+  for(let x=0; x<=W; x+=escala){
     ctx2.beginPath();
-    ctx2.moveTo(0,origenY);
-    ctx2.lineTo(800,origenY);
+    ctx2.moveTo(x,0);
+    ctx2.lineTo(x,H);
     ctx2.stroke();
+  }
 
+  for(let y=0; y<=H; y+=escala){
     ctx2.beginPath();
-    ctx2.moveTo(origenX,0);
-    ctx2.lineTo(origenX,450);
+    ctx2.moveTo(0,y);
+    ctx2.lineTo(W,y);
     ctx2.stroke();
+  }
 
-    ctx2.strokeStyle="#cd2027";
-    ctx2.lineWidth=4;
+  // ejes
+  ctx2.strokeStyle = "#233258";
+  ctx2.lineWidth = 2;
 
-    ctx2.beginPath();
+  ctx2.beginPath();
+  ctx2.moveTo(0,origenY);
+  ctx2.lineTo(W,origenY);
+  ctx2.stroke();
 
-    let primero=true;
+  ctx2.beginPath();
+  ctx2.moveTo(origenX,0);
+  ctx2.lineTo(origenX,H);
+  ctx2.stroke();
 
-    for(let x=-10;x<=10;x+=0.05){
+  // parábola
+  ctx2.strokeStyle = "#cd2027";
+  ctx2.lineWidth = 4;
+  ctx2.beginPath();
 
-        let y=A*x*x+B*x+C;
+  let primero = true;
 
-        let px=origenX+x*escala;
-        let py=origenY-y*escala;
+  for(let px=0; px<=W; px++){
+    const x = (px - origenX) / escala;
+    const y = A*x*x + B*x + C;
+    const py = origenY - y*escala;
 
-        if(primero){
-            ctx2.moveTo(px,py);
-            primero=false;
-        }
-        else{
-            ctx2.lineTo(px,py);
-        }
+    if(primero){
+      ctx2.moveTo(px,py);
+      primero = false;
+    }else{
+      ctx2.lineTo(px,py);
     }
+  }
 
-    ctx2.stroke();
+  ctx2.stroke();
 
-    const xv=-B/(2*A);
-    const yv=A*xv*xv+B*xv+C;
+  // vértice
+  const xv = -B/(2*A);
+  const yv = A*xv*xv + B*xv + C;
 
-    ctx2.fillStyle="#1f9d55";
+  const vx = origenX + xv*escala;
+  const vy = origenY - yv*escala;
 
+  if(vx >= 0 && vx <= W && vy >= 0 && vy <= H){
+    ctx2.fillStyle = "#1f9d55";
     ctx2.beginPath();
-    ctx2.arc(
-        origenX+xv*escala,
-        origenY-yv*escala,
-        7,
-        0,
-        Math.PI*2
-    );
+    ctx2.arc(vx,vy,7,0,Math.PI*2);
     ctx2.fill();
 
-    const delta=B*B-4*A*C;
+    ctx2.fillStyle = "#233258";
+    ctx2.font = "bold 14px Segoe UI";
+    ctx2.fillText("vértice", vx+10, vy-10);
+  }
 
-    let texto="";
+  const delta = B*B - 4*A*C;
 
-    texto += `<strong>Discriminante:</strong> ${delta.toFixed(2)}<br>`;
+  let texto = "";
+  texto += `<strong>Discriminante:</strong> ${delta.toFixed(2)}<br>`;
+  texto += `<strong>Vértice:</strong> (${xv.toFixed(2)}, ${yv.toFixed(2)})<br>`;
 
-    texto += `<strong>Vértice:</strong> (${xv.toFixed(2)}, ${yv.toFixed(2)})<br>`;
+  if(A > 0){
+    texto += `<strong>Concavidad:</strong> ↑ Abierta hacia arriba<br>`;
+  }else{
+    texto += `<strong>Concavidad:</strong> ↓ Abierta hacia abajo<br>`;
+  }
 
-    if(A>0){
-        texto += `<strong>Concavidad:</strong> ↑ Abierta hacia arriba<br>`;
-    }else{
-        texto += `<strong>Concavidad:</strong> ↓ Abierta hacia abajo<br>`;
-    }
+  if(delta > 0){
+    const x1 = (-B + Math.sqrt(delta))/(2*A);
+    const x2 = (-B - Math.sqrt(delta))/(2*A);
+    texto += `<strong>Raíces:</strong><br>`;
+    texto += `x₁ = ${x1.toFixed(2)}<br>`;
+    texto += `x₂ = ${x2.toFixed(2)}`;
+  }else if(delta === 0){
+    const x = -B/(2*A);
+    texto += `<strong>Raíz doble:</strong><br>`;
+    texto += `x = ${x.toFixed(2)}`;
+  }else{
+    texto += `<strong>Raíces:</strong><br>`;
+    texto += `No existen raíces reales`;
+  }
 
-    if(delta>0){
+  infoParabola.innerHTML = texto;
 
-        const x1=(-B+Math.sqrt(delta))/(2*A);
-        const x2=(-B-Math.sqrt(delta))/(2*A);
-
-        texto += `<strong>Raíces:</strong><br>`;
-        texto += `x₁=${x1.toFixed(2)}<br>`;
-        texto += `x₂=${x2.toFixed(2)}`;
-    }
-    else if(delta===0){
-
-        const x=-B/(2*A);
-
-        texto += `<strong>Raíz doble:</strong><br>`;
-        texto += `x=${x.toFixed(2)}`;
-    }
-    else{
-
-        texto += `<strong>Raíces:</strong><br>`;
-        texto += `No existen raíces reales`;
-    }
-
-    infoParabola.innerHTML=texto;
-
-    MathJax.typesetPromise();
+  MathJax.typesetPromise();
 }
 
 a2.addEventListener("input",dibujarParabola);
