@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Simulador: tiro libre y funciones cuadráticas</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']]
+  },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+:root{
+  --rojo:#cd2027;
+  --rojoOscuro:#9b1923;
+  --azul:#233258;
+  --verde:#1f9d55;
+  --gris:#f7f8fa;
+  --grisCaja:#eef0f4;
+  --texto:#232323;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:"Segoe UI", Arial, sans-serif;
+  background:var(--gris);
+  color:var(--texto);
+}
+
+header{
+  background:linear-gradient(135deg,var(--rojo),var(--rojoOscuro));
+  color:white;
+  padding:22px 34px;
+  border-bottom:8px solid var(--azul);
+}
+
+header h1{
+  margin:0;
+  font-size:2rem;
+}
+
+header p{
+  margin:6px 0 0;
+}
+
+.contenedor{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:22px;
+  padding:24px;
+}
+
+.panel,.escenario{
+  background:white;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.fullwidth{
+  grid-column:1 / -1;
+}
+
+.explorador-grid{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:20px;
+  align-items:start;
+}
+
+h2{
+  color:var(--rojo);
+  margin-top:0;
+}
+
+.control{
+  margin:20px 0;
+}
+
+label{
+  font-weight:700;
+  display:block;
+  margin-bottom:8px;
+}
+
+input[type="range"]{
+  width:100%;
+  accent-color:var(--rojo);
+}
+
+.valor{
+  background:var(--grisCaja);
+  padding:7px 10px;
+  border-radius:8px;
+  color:var(--azul);
+  font-weight:700;
+  display:inline-block;
+  margin-top:6px;
+}
+
+.ecuacion{
+  background:var(--azul);
+  color:white;
+  padding:14px;
+  border-radius:12px;
+  text-align:center;
+  font-size:1.25rem;
+  margin-top:18px;
+}
+
+.resultado{
+  margin-top:18px;
+  padding:14px;
+  border-radius:12px;
+  background:#fff0f1;
+  border-left:6px solid var(--rojo);
+  font-weight:700;
+}
+
+.nota{
+  font-size:.9rem;
+  color:#555;
+  margin-top:12px;
+}
+
+canvas{
+  width:100%;
+  background:linear-gradient(#ffffff,#f0f2f6);
+  border-radius:16px;
+  border:1px solid #dfe3ea;
+}
+
+#canvas{
+  height:520px;
+}
+
+#canvasParabola{
+  height:450px;
+}
+
+.botones{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:16px;
+}
+
+button{
+  border:none;
+  background:var(--rojo);
+  color:white;
+  padding:9px;
+  border-radius:9px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+button:hover{
+  background:var(--rojoOscuro);
+}
+
+@media(max-width:850px){
+  .contenedor,
+  .explorador-grid{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Simulador: tiro libre y funciones cuadráticas</h1>
+  <p>Modelo cuadrático aplicado a una trayectoria parabólica</p>
+</header>
+
+<div class="contenedor">
+
+<section class="panel">
+  <h2>Parámetros</h2>
+
+  <div class="control">
+    <label for="a">Coeficiente cuadrático \(a\)</label>
+    <input id="a" type="range" min="-0.18" max="-0.02" step="0.01" value="-0.08">
+    <span class="valor" id="valorA"></span>
+  </div>
+
+  <div class="control">
+    <label for="b">Pendiente inicial \(b\)</label>
+    <input id="b" type="range" min="0.4" max="2.4" step="0.1" value="1.2">
+    <span class="valor" id="valorB"></span>
+  </div>
+
+  <div class="ecuacion" id="ecuacion"></div>
+  <div class="resultado" id="resultado"></div>
+
+  <p class="nota">
+    La trayectoria se modela como:
+    <br><strong>\(h(x)=ax^2+bx\)</strong>
+    <br>donde \(x\) es la distancia horizontal y \(h(x)\) la altura del balón.
+  </p>
+</section>
+
+<section class="escenario">
+  <canvas id="canvas" width="1000" height="520"></canvas>
+</section>
+
+<section class="escenario fullwidth">
+  <h2>Explorador de Funciones Cuadráticas</h2>
+
+  <div class="explorador-grid">
+
+    <div>
+      <div class="control">
+        <label for="a2">\(a\) coeficiente cuadrático</label>
+        <input id="a2" type="range" min="-2" max="2" step="0.1" value="1">
+        <span class="valor" id="valorA2"></span>
+      </div>
+
+      <div class="control">
+        <label for="b2">\(b\) coeficiente lineal</label>
+        <input id="b2" type="range" min="-10" max="10" step="0.5" value="0">
+        <span class="valor" id="valorB2"></span>
+      </div>
+
+      <div class="control">
+        <label for="c2">\(c\) término independiente</label>
+        <input id="c2" type="range" min="-10" max="10" step="0.5" value="0">
+        <span class="valor" id="valorC2"></span>
+      </div>
+
+      <div class="ecuacion" id="ecuacion2"></div>
+      <div class="resultado" id="infoParabola"></div>
+
+      <div class="botones">
+        <button onclick="preset(1,0,0)">Estándar</button>
+        <button onclick="preset(1,2,1)">Raíz doble</button>
+        <button onclick="preset(1,0,4)">Sin raíces</button>
+        <button onclick="preset(-1,4,0)">Máximo</button>
+      </div>
+    </div>
+
+    <div>
+      <canvas id="canvasParabola" width="900" height="450"></canvas>
+    </div>
+
+  </div>
+</section>
+
+</div>
+
+<script>
+const rojo = "#cd2027";
+const azul = "#233258";
+const verde = "#1f9d55";
+
+// =========================
+// SIMULADOR TIRO LIBRE
+// =========================
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const inputA = document.getElementById("a");
+const inputB = document.getElementById("b");
+
+const valorA = document.getElementById("valorA");
+const valorB = document.getElementById("valorB");
+const ecuacion = document.getElementById("ecuacion");
+const resultado = document.getElementById("resultado");
+
+function pxX(x){
+  return 80 + x * 75;
+}
+
+function pxY(y){
+  return 430 - y * 75;
+}
+
+function dibujarBalon(x,y,r){
+  const cx = pxX(x);
+  const cy = pxY(y);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.clip();
+
+  ctx.fillStyle = rojo;
+  ctx.fillRect(cx-r,cy-r,r*2,r*2);
+
+  ctx.fillStyle = verde;
+  ctx.beginPath();
+  ctx.moveTo(cx-r,cy-r);
+  ctx.lineTo(cx+r,cy-r);
+  ctx.lineTo(cx-r,cy+r);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = azul;
+  ctx.beginPath();
+  ctx.moveTo(cx+r,cy-r);
+  ctx.lineTo(cx+r,cy+r);
+  ctx.lineTo(cx-r,cy+r);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+
+  ctx.strokeStyle = "#222";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.strokeStyle = "rgba(255,255,255,.85)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx-r,cy);
+  ctx.lineTo(cx+r,cy);
+  ctx.moveTo(cx,cy-r);
+  ctx.lineTo(cx,cy+r);
+  ctx.stroke();
+}
+
+function dibujar(){
+  const a = parseFloat(inputA.value);
+  const b = parseFloat(inputB.value);
+
+  valorA.textContent = `a = ${a.toFixed(2)}`;
+  valorB.textContent = `b = ${b.toFixed(1)}`;
+  ecuacion.innerHTML = `\\(h(x)=${a.toFixed(2)}x^2+${b.toFixed(1)}x\\)`;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.fillStyle = "#f7f8fa";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  ctx.fillStyle = "rgba(205,32,39,0.12)";
+  ctx.beginPath();
+  ctx.arc(0,0,180,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(35,50,88,0.08)";
+  ctx.beginPath();
+  ctx.arc(1000,520,220,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.strokeStyle = azul;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(60,430);
+  ctx.lineTo(950,430);
+  ctx.stroke();
+
+  // =========================
+// JUGADOR
+// =========================
+
+ctx.fillStyle = rojo;
+
+// cabeza
+ctx.beginPath();
+ctx.arc(pxX(0)-25,370,14,0,Math.PI*2);
+ctx.fill();
+
+// cuerpo
+ctx.fillRect(pxX(0)-34,385,18,45);
+
+// brazos
+ctx.strokeStyle = rojo;
+ctx.lineWidth = 5;
+
+ctx.beginPath();
+ctx.moveTo(pxX(0)-25,395);
+ctx.lineTo(pxX(0)-45,410);
+
+ctx.moveTo(pxX(0)-25,395);
+ctx.lineTo(pxX(0)-5,405);
+ctx.stroke();
+
+// piernas
+ctx.beginPath();
+ctx.moveTo(pxX(0)-25,425);
+ctx.lineTo(pxX(0)-45,450);
+
+ctx.moveTo(pxX(0)-25,425);
+ctx.lineTo(pxX(0)-5,450);
+ctx.stroke();
+
+// etiqueta
+ctx.fillStyle = azul;
+ctx.font = "16px Segoe UI";
+ctx.fillText("jugador", pxX(0)-55,470);
+
+  const barreraX = 4.5;
+  const alturaBarrera = 1.7;
+
+  for(let i=0;i<4;i++){
+    const x = pxX(barreraX)+i*22;
+    ctx.fillStyle = azul;
+    ctx.fillRect(x,pxY(alturaBarrera),14,alturaBarrera*75);
+    ctx.beginPath();
+    ctx.arc(x+7,pxY(alturaBarrera)-10,9,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = azul;
+  ctx.font = "16px Segoe UI";
+  ctx.fillText("barrera",pxX(barreraX)-5,465);
+
+  const porteriaX = 7.2;
+  const porteriaH = 2.2;
+
+  ctx.strokeStyle = azul;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(pxX(porteriaX),430);
+  ctx.lineTo(pxX(porteriaX),pxY(porteriaH));
+  ctx.lineTo(pxX(porteriaX)+110,pxY(porteriaH));
+  ctx.lineTo(pxX(porteriaX)+110,430);
+  ctx.stroke();
+
+  ctx.fillText("portería",pxX(porteriaX)+20,465);
+
+  ctx.strokeStyle = rojo;
+  ctx.lineWidth = 5;
+  ctx.setLineDash([14,10]);
+  ctx.beginPath();
+
+  let primero = true;
+  let maxY = -Infinity;
+  let maxX = 0;
+
+  for(let x=0; x<=8.2; x+=0.04){
+    const y = a*x*x + b*x;
+    if(y >= 0){
+      const X = pxX(x);
+      const Y = pxY(y);
+      if(primero){
+        ctx.moveTo(X,Y);
+        primero = false;
+      }else{
+        ctx.lineTo(X,Y);
+      }
+      if(y > maxY){
+        maxY = y;
+        maxX = x;
+      }
+    }
+  }
+
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = rojo;
+  ctx.beginPath();
+  ctx.arc(pxX(maxX),pxY(maxY),8,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = azul;
+  ctx.font = "bold 16px Segoe UI";
+  ctx.fillText("altura máxima",pxX(maxX)+12,pxY(maxY)-10);
+
+  const ballX = Math.min(5.8,Math.max(1.2,maxX+1.2));
+  const ballY = a*ballX*ballX + b*ballX;
+  dibujarBalon(ballX,ballY,18);
+
+  const alturaEnBarrera = a*barreraX*barreraX + b*barreraX;
+
+  if(alturaEnBarrera > alturaBarrera){
+    resultado.innerHTML = `✅ El balón supera la barrera. Altura en la barrera: \\(${alturaEnBarrera.toFixed(2)}\\,m\\).`;
+  }else{
+    resultado.innerHTML = `❌ El balón no supera la barrera. Altura en la barrera: \\(${alturaEnBarrera.toFixed(2)}\\,m\\).`;
+  }
+
+  MathJax.typesetPromise();
+}
+
+inputA.addEventListener("input",dibujar);
+inputB.addEventListener("input",dibujar);
+
+// =========================
+// EXPLORADOR GENERAL
+// =========================
+
+const canvas2 = document.getElementById("canvasParabola");
+const ctx2 = canvas2.getContext("2d");
+
+const a2 = document.getElementById("a2");
+const b2 = document.getElementById("b2");
+const c2 = document.getElementById("c2");
+
+const valorA2 = document.getElementById("valorA2");
+const valorB2 = document.getElementById("valorB2");
+const valorC2 = document.getElementById("valorC2");
+
+const ecuacion2 = document.getElementById("ecuacion2");
+const infoParabola = document.getElementById("infoParabola");
+
+function dibujarParabola(){
+  const A = parseFloat(a2.value);
+  const B = parseFloat(b2.value);
+  const C = parseFloat(c2.value);
+
+  valorA2.textContent = `a = ${A}`;
+  valorB2.textContent = `b = ${B}`;
+  valorC2.textContent = `c = ${C}`;
+
+  ecuacion2.innerHTML = `\\(y=${A}x^2+${B}x+${C}\\)`;
+
+  const W = canvas2.width;
+  const H = canvas2.height;
+
+  ctx2.clearRect(0,0,W,H);
+  ctx2.fillStyle = "#f7f8fa";
+  ctx2.fillRect(0,0,W,H);
+
+  const origenX = W/2;
+  const origenY = H/2;
+  const escala = 35;
+
+  ctx2.strokeStyle = "#e2e5ea";
+  ctx2.lineWidth = 1;
+
+  for(let x=0; x<=W; x+=escala){
+    ctx2.beginPath();
+    ctx2.moveTo(x,0);
+    ctx2.lineTo(x,H);
+    ctx2.stroke();
+  }
+
+  for(let y=0; y<=H; y+=escala){
+    ctx2.beginPath();
+    ctx2.moveTo(0,y);
+    ctx2.lineTo(W,y);
+    ctx2.stroke();
+  }
+
+  ctx2.strokeStyle = azul;
+  ctx2.lineWidth = 2;
+
+  ctx2.beginPath();
+  ctx2.moveTo(0,origenY);
+  ctx2.lineTo(W,origenY);
+  ctx2.stroke();
+
+  ctx2.beginPath();
+  ctx2.moveTo(origenX,0);
+  ctx2.lineTo(origenX,H);
+  ctx2.stroke();
+
+  ctx2.strokeStyle = rojo;
+  ctx2.lineWidth = 4;
+  ctx2.beginPath();
+
+  let primero = true;
+
+  for(let px=0; px<=W; px++){
+    const x = (px - origenX) / escala;
+    const y = A*x*x + B*x + C;
+    const py = origenY - y*escala;
+
+    if(primero){
+      ctx2.moveTo(px,py);
+      primero = false;
+    }else{
+      ctx2.lineTo(px,py);
+    }
+  }
+
+  ctx2.stroke();
+
+  if(A !== 0){
+    const xv = -B/(2*A);
+    const yv = A*xv*xv + B*xv + C;
+    const vx = origenX + xv*escala;
+    const vy = origenY - yv*escala;
+
+    if(vx >= 0 && vx <= W && vy >= 0 && vy <= H){
+      ctx2.fillStyle = verde;
+      ctx2.beginPath();
+      ctx2.arc(vx,vy,7,0,Math.PI*2);
+      ctx2.fill();
+
+      ctx2.fillStyle = azul;
+      ctx2.font = "bold 14px Segoe UI";
+      ctx2.fillText("vértice",vx+10,vy-10);
+    }
+
+    const delta = B*B - 4*A*C;
+
+    let texto = "";
+    texto += `<strong>Discriminante:</strong> ${delta.toFixed(2)}<br>`;
+    texto += `<strong>Vértice:</strong> (${xv.toFixed(2)}, ${yv.toFixed(2)})<br>`;
+    texto += `<strong>Concavidad:</strong> ${A>0 ? "↑ Abierta hacia arriba" : "↓ Abierta hacia abajo"}<br>`;
+
+    if(delta > 0){
+      const x1 = (-B + Math.sqrt(delta))/(2*A);
+      const x2 = (-B - Math.sqrt(delta))/(2*A);
+      texto += `<strong>Raíces:</strong><br>x₁=${x1.toFixed(2)}<br>x₂=${x2.toFixed(2)}`;
+    }else if(delta === 0){
+      const x = -B/(2*A);
+      texto += `<strong>Raíz doble:</strong><br>x=${x.toFixed(2)}`;
+    }else{
+      texto += `<strong>Raíces:</strong><br>No existen raíces reales`;
+    }
+
+    infoParabola.innerHTML = texto;
+  }
+
+  MathJax.typesetPromise();
+}
+
+function preset(A,B,C){
+  a2.value = A;
+  b2.value = B;
+  c2.value = C;
+  dibujarParabola();
+}
+
+a2.addEventListener("input",dibujarParabola);
+b2.addEventListener("input",dibujarParabola);
+c2.addEventListener("input",dibujarParabola);
+
+dibujar();
+dibujarParabola();
+</script>
+
+</body>
+</html>
